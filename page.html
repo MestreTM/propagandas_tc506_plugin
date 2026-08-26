@@ -1,0 +1,476 @@
+<style>
+/* —— abas —— */
+.prop-tabs{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem}
+.prop-tab{
+  padding:.5rem 1rem;border-radius:10px;border:1px solid rgb(255 255 255 / .12);
+  background:rgb(8 14 28 / .6);color:var(--texto,#e8eef8);cursor:pointer;font:inherit;font-size:.9rem;
+  transition:background .15s,border-color .15s;
+}
+.prop-tab:hover{border-color:rgb(29 111 224 / .5)}
+.prop-tab.ativa{background:#1d6fe0;border-color:#1d6fe0;color:#fff}
+.prop-painel{display:none}.prop-painel.ativo{display:block}
+
+/* —— editor Photoshop-like (cabe na viewport) —— */
+#painel-template.prop-painel.ativo{
+  height:calc(100vh - 6.5rem);max-height:calc(100vh - 6.5rem);overflow:hidden;
+}
+.prop-shell{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(15.5rem,17.5rem);
+  gap:.65rem;align-items:stretch;
+  height:100%;min-height:0;max-height:100%;
+}
+@media(max-width:960px){.prop-shell{grid-template-columns:1fr;height:auto;max-height:none}}
+.prop-lateral{
+  background:var(--ink-2,#121a2b);border:1px solid var(--line,#2a3550);
+  border-radius:14px;padding:.6rem .7rem;
+  display:flex;flex-direction:column;gap:.55rem;
+  min-height:0;max-height:100%;overflow:auto;
+}
+.prop-bloco label{
+  display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;
+  color:#8a97b0;margin-bottom:.28rem;font-weight:600;
+}
+.prop-input,.prop-select,textarea.prop-input{
+  width:100%;height:2.25rem;padding:0 .65rem;border-radius:9px;
+  border:1px solid rgb(255 255 255 / .12);background:rgb(8 14 28 / .9);
+  color:var(--texto,#e8eef8);font:inherit;font-size:.88rem;outline:none;box-sizing:border-box;
+}
+textarea.prop-input{height:auto;min-height:3.4rem;padding:.5rem .65rem;resize:vertical}
+.prop-input:focus,.prop-select:focus{border-color:#1d6fe0;box-shadow:0 0 0 3px rgb(29 111 224 / .2)}
+.prop-select{appearance:none;cursor:pointer}
+.prop-check{display:flex;align-items:center;gap:.4rem;font-size:.86rem;margin:.25rem 0;cursor:pointer}
+.prop-camadas-cab{display:flex;flex-direction:column;gap:.3rem}
+.prop-camadas-btns{display:flex;flex-wrap:wrap;gap:.28rem}
+.prop-camadas-btns .botao{font-size:.72rem;padding:.28rem .42rem}
+.prop-lista-camadas{
+  list-style:none;margin:0;padding:0;flex:1;min-height:4rem;max-height:none;overflow:auto;
+  border:1px solid rgb(255 255 255 / .08);border-radius:10px;background:rgb(0 0 0 / .2);
+}
+.prop-lista-camadas li{
+  display:flex;align-items:center;gap:.3rem;padding:.38rem .5rem;
+  font-size:.82rem;cursor:pointer;border-bottom:1px solid rgb(255 255 255 / .05);
+}
+.prop-lista-camadas li:last-child{border-bottom:none}
+.prop-lista-camadas li:hover{background:rgb(29 111 224 / .1)}
+.prop-lista-camadas li.ativa{background:rgb(29 111 224 / .22)}
+.prop-lista-camadas .meta{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prop-lista-camadas .botao{padding:.12rem .32rem;font-size:.75rem;line-height:1}
+.prop-props-bar{
+  display:none;flex-wrap:wrap;align-items:flex-end;gap:.4rem .55rem;
+  padding:.4rem .5rem;margin-bottom:.4rem;flex-shrink:0;
+  background:rgb(0 0 0 / .28);border:1px solid rgb(255 255 255 / .1);border-radius:10px;
+}
+.prop-props-bar.visivel{display:flex}
+.prop-props-bar .campo{margin:0;min-width:4.2rem}
+.prop-props-bar .campo label{
+  display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.03em;
+  color:#8a97b0;margin-bottom:.12rem;font-weight:600;
+}
+.prop-props-bar .prop-input,.prop-props-bar .prop-select{
+  height:1.85rem;font-size:.78rem;padding:0 .4rem;border-radius:7px;
+}
+.prop-props-bar textarea.prop-input{min-height:1.85rem;height:1.85rem;padding:.2rem .4rem;resize:none}
+.prop-props-bar .prop-check{margin:0;font-size:.78rem;white-space:nowrap;align-self:center}
+.prop-props-bar input[type=color]{width:2.2rem!important;height:1.85rem!important;border-radius:6px;padding:0;border:none;cursor:pointer}
+.prop-props-bar .prop-props-vazio{font-size:.8rem;color:#8a97b0;padding:.15rem .2rem}
+
+.prop-canvas-wrap{
+  background:var(--ink-2,#121a2b);border:1px solid var(--line,#2a3550);
+  border-radius:14px;padding:.5rem .55rem;display:flex;flex-direction:column;
+  min-height:0;height:100%;overflow:hidden;
+}
+.prop-canvas-toolbar{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:.35rem;flex-wrap:wrap;gap:.35rem;flex-shrink:0;
+}
+.prop-canvas-scroll{
+  flex:1;overflow:auto;padding:.65rem;
+  display:flex;justify-content:center;align-items:center;
+  background:
+    linear-gradient(45deg,#0a101c 25%,transparent 25%),
+    linear-gradient(-45deg,#0a101c 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#0a101c 75%),
+    linear-gradient(-45deg,transparent 75%,#0a101c 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;
+  background-color:#0e1524;border-radius:10px;min-height:0;
+}
+.prop-folha{
+  position:relative;width:480px;height:272px;flex-shrink:0;
+  background:#0d1b2a;box-shadow:0 12px 40px rgb(0 0 0 / .55);
+  overflow:hidden;user-select:none;
+}
+.prop-camada{
+  position:absolute;box-sizing:border-box;cursor:move;user-select:none;overflow:hidden;
+  pointer-events:auto;touch-action:none;
+}
+.prop-camada.selecionada{outline:2px solid #1d6fe0;outline-offset:1px}
+.prop-camada .handle{
+  position:absolute;width:10px;height:10px;background:#1d6fe0;
+  border:1px solid #fff;border-radius:2px;z-index:5;
+  box-shadow:0 0 0 1px rgb(0 0 0 / .25);pointer-events:auto;
+}
+.prop-camada .handle-nw{left:-5px;top:-5px;cursor:nwse-resize}
+.prop-camada .handle-ne{right:-5px;top:-5px;cursor:nesw-resize}
+.prop-camada .handle-sw{left:-5px;bottom:-5px;cursor:nesw-resize}
+.prop-camada .handle-se{right:-5px;bottom:-5px;cursor:nwse-resize}
+.prop-camada-text{
+  display:flex;flex-direction:column;align-items:flex-start;
+  word-break:break-word;line-height:1.25;padding:1px;width:100%;height:100%;
+  white-space:pre-wrap;
+}
+.prop-camada-text .fp-unid{
+  display:block;font-size:.35em;font-weight:700;line-height:1.05;
+  margin-top:.1em;opacity:.85;width:100%;
+}
+.prop-camada-img{width:100%;height:100%;overflow:hidden;background:transparent!important}
+.prop-camada-img img{
+  width:100%;height:100%;object-fit:contain;object-position:center;
+  pointer-events:none;display:block;
+}
+.prop-camada-img.fit-cover img{object-fit:cover}
+.prop-guia{position:absolute;pointer-events:none;z-index:10000;background:#ff4d6d}
+.prop-guia-v{width:1px;top:0}
+.prop-guia-h{height:1px;left:0}
+.prop-guia-centro{background:#ff2d55;box-shadow:0 0 0 1px rgb(255 45 85 / .35);opacity:.95}
+.prop-guia-v.prop-guia-centro{width:2px}
+.prop-guia-h.prop-guia-centro{height:2px}
+
+.prop-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:800px){.prop-grid-2{grid-template-columns:1fr}}
+.prop-prod-lista{
+  list-style:none;margin:0;padding:0;max-height:16rem;overflow:auto;
+  border:1px solid var(--line,#2a3550);border-radius:10px;background:rgb(0 0 0 / .2);
+}
+.prop-prod-lista li{
+  display:flex;justify-content:space-between;align-items:center;gap:.55rem;
+  padding:.5rem .65rem;border-bottom:1px solid rgb(255 255 255 / .05);font-size:.86rem;
+}
+.prop-prod-lista li:last-child{border-bottom:none}
+.prop-prod-lista .pool-thumb{
+  width:72px;height:41px;object-fit:cover;flex-shrink:0;
+  border-radius:6px;background:#fff;cursor:pointer;
+  border:1px solid rgb(255 255 255 / .14);
+  box-shadow:0 2px 8px rgb(0 0 0 / .25);
+}
+.prop-prod-lista .pool-thumb:hover{outline:2px solid #1d6fe0;outline-offset:1px}
+.prop-prod-lista .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.12rem}
+.prop-prod-lista .desc{font-weight:600;font-size:.9rem;line-height:1.25;word-break:break-word}
+.prop-prod-lista .preco{color:#ff8a80;font-size:.88rem;font-weight:600}
+.prop-prod-lista .cod{font-family:ui-monospace,monospace;font-size:.72rem;color:#8a97b0}
+.prop-prod-lista .tag-rand{
+  display:inline-block;margin-top:.15rem;padding:.08rem .4rem;border-radius:999px;
+  font-size:.68rem;font-weight:600;letter-spacing:.02em;
+  background:rgb(79 195 247 / .15);color:#7dd3fc;border:1px solid rgb(79 195 247 / .28);
+}
+.prop-prod-lista .modo-balanca{
+  margin-top:.25rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;
+}
+.prop-prod-lista .modo-balanca select{
+  height:1.7rem;font-size:.75rem;padding:0 .35rem;border-radius:7px;
+  border:1px solid rgb(255 255 255 / .12);background:rgb(8 14 28 / .9);
+  color:var(--texto,#e8eef8);font:inherit;max-width:7.5rem;
+}
+.prop-pool-sub{margin:.85rem 0 .35rem;font-size:.78rem;font-weight:600;color:#8a97b0;text-transform:uppercase;letter-spacing:.04em}
+.prop-peers-lista{display:flex;flex-direction:column;gap:.35rem;max-height:14rem;overflow:auto}
+.prop-peer-item{
+  display:flex;align-items:center;gap:.5rem;padding:.45rem .65rem;border-radius:9px;
+  background:rgb(0 0 0 / .22);font-size:.88rem;cursor:pointer;
+}
+.prop-peer-item:hover{background:rgb(29 111 224 / .1)}
+.prop-midia-lista{display:flex;flex-wrap:wrap;gap:.55rem}
+.prop-midia-card{
+  width:118px;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  background:rgb(0 0 0 / .25);font-size:.74rem;text-align:center;
+}
+.prop-midia-card img{width:100%;height:66px;object-fit:cover;display:block;background:#111}
+.prop-midia-card .nome{padding:.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prop-upload-zone{
+  border:2px dashed rgb(255 255 255 / .15);border-radius:12px;padding:1.15rem;
+  text-align:center;cursor:pointer;background:rgb(255 255 255 / .02);
+  transition:border-color .15s,background .15s;
+}
+.prop-upload-zone:hover,.prop-upload-zone.is-over{border-color:#1d6fe0;background:rgb(29 111 224 / .1)}
+.prop-status-box{
+  padding:.85rem 1rem;border-radius:12px;background:rgb(0 0 0 / .28);
+  border:1px solid var(--line);font-size:.88rem;line-height:1.5;
+}
+.prop-status-box strong{color:#a8c4ff}
+.prop-acoes-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.65rem}
+.prop-hint{font-size:.8rem;color:#8a97b0;margin:.35rem 0 .2rem;line-height:1.35}
+.prop-sep{height:1px;background:rgb(255 255 255 / .08);margin:.15rem 0}
+.prop-preview-img{max-width:100%;border-radius:8px;border:1px solid var(--line);display:block;margin:.55rem auto 0}
+.prop-pack-box{
+  padding:.75rem;border-radius:12px;border:1px solid rgb(29 111 224 / .25);
+  background:rgb(29 111 224 / .08);margin-top:.5rem;
+}
+</style>
+
+<div class="prop-tabs" id="prop-tabs">
+  <button type="button" class="prop-tab ativa" data-tab="template">Template</button>
+  <button type="button" class="prop-tab" data-tab="produtos">Produtos</button>
+  <button type="button" class="prop-tab" data-tab="config">Configurações</button>
+</div>
+
+<div class="prop-painel ativo" id="painel-template">
+  <div class="prop-shell">
+    <div class="prop-canvas-wrap">
+      <div class="prop-canvas-toolbar">
+        <span class="meta-img">480 × 272 px · BMP TC-506M</span>
+      </div>
+      <div class="prop-props-bar" id="prop-props-bar">
+        <span class="prop-props-vazio">Selecione um elemento no canvas para editar</span>
+      </div>
+      <div class="prop-canvas-scroll">
+        <div class="prop-folha" id="prop-folha"></div>
+      </div>
+    </div>
+    <aside class="prop-lateral">
+      <div class="prop-bloco">
+        <label>Template</label>
+        <input type="text" id="prop-tpl-nome" class="prop-input" placeholder="Propaganda 480×272">
+      </div>
+      <div class="prop-bloco">
+        <label>Cor de fundo</label>
+        <input type="color" id="prop-fundo" value="#ffffff" style="width:100%;height:2rem;border:none;border-radius:8px;cursor:pointer">
+      </div>
+      <div class="prop-bloco">
+        <label>Produto de prévia</label>
+        <div class="campo-com-acao">
+          <input type="text" id="prop-codigo" class="prop-input" placeholder="EAN ou PLU" style="flex:1">
+          <button type="button" class="botao botao--claro" id="prop-buscar">Buscar</button>
+        </div>
+        <p class="prop-hint" id="prop-prod-status">Imagem local → Cosmos se faltar.</p>
+      </div>
+      <div class="prop-sep"></div>
+      <div class="prop-bloco prop-camadas-cab" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <label>Camadas</label>
+        <div class="prop-camadas-btns">
+          <button type="button" class="botao botao--fantasma" id="prop-add-text">+ Texto</button>
+          <button type="button" class="botao botao--fantasma" id="prop-add-field">+ Campo</button>
+          <button type="button" class="botao botao--fantasma" id="prop-add-cosmos">+ Foto</button>
+          <button type="button" class="botao botao--fantasma" id="prop-add-img">+ Imagem</button>
+          <button type="button" class="botao botao--fantasma" id="prop-add-rect">+ Retângulo</button>
+        </div>
+        <ul class="prop-lista-camadas" id="prop-lista-camadas"></ul>
+      </div>
+      <div class="prop-acoes-row" style="margin-top:auto;flex-shrink:0">
+        <button type="button" class="botao botao--claro" id="prop-salvar-tpl">Salvar template</button>
+        <button type="button" class="botao botao--fantasma" id="prop-reset-tpl">Exemplo</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="prop-painel" id="painel-produtos">
+  <div class="prop-grid-2">
+    <section class="cartao">
+      <header class="config-secao-cab">
+        <h2>Pool de produtos</h2>
+        <p class="dica">Códigos que entram na rotação de propagandas.</p>
+      </header>
+      <div class="campo-com-acao">
+        <input type="text" id="prop-add-cod" class="prop-input" placeholder="EAN, PLU ou descrição" style="flex:1">
+        <button type="button" class="botao botao--claro" id="prop-add-prod">Buscar</button>
+      </div>
+      <p class="prop-hint" id="prop-pool-status">Digite e busque — escolha na lista para adicionar.</p>
+      <p class="prop-hint" id="prop-pool-count">0 produto(s) no pool</p>
+      <ul class="prop-prod-lista" id="prop-lista-prod"></ul>
+      <div class="prop-acoes-row">
+        <button type="button" class="botao botao--fantasma" id="prop-limpar-pool">Limpar pool</button>
+      </div>
+    </section>
+
+    <section class="cartao">
+      <header class="config-secao-cab">
+        <h2>Pacote e ciclo</h2>
+        <p class="dica">Quantos produtos por rodada e quando trocar o pacote.</p>
+      </header>
+      <div class="prop-pack-box">
+        <div class="prop-bloco">
+          <label>Tamanho do pacote</label>
+          <input type="number" id="prop-pack-tam" class="prop-input" min="1" max="50" value="10">
+        </div>
+        <div class="prop-bloco">
+          <label>Ordem</label>
+          <select id="prop-pack-ordem" class="prop-select">
+            <option value="sequencial">Sequencial (roda o pool)</option>
+            <option value="aleatorio">Aleatória a cada ciclo</option>
+          </select>
+        </div>
+        <div class="prop-bloco">
+          <label>Trocar pacote a cada</label>
+          <div style="display:flex;gap:.4rem">
+            <input type="number" id="prop-int-val" class="prop-input" min="1" value="15" style="flex:1">
+            <select id="prop-int-unid" class="prop-select" style="flex:1">
+              <option value="minutos">Minutos</option>
+              <option value="horas" selected>Horas</option>
+              <option value="dias">Dias</option>
+            </select>
+          </div>
+        </div>
+        <div class="prop-bloco">
+          <label>Tempo de cada propaganda no terminal (s)</label>
+          <input type="number" id="prop-tempo-exib" class="prop-input" min="1" max="300" value="8">
+        </div>
+      </div>
+
+      <header class="config-secao-cab" style="margin-top:1.1rem">
+        <h2>Produtos aleatórios da base</h2>
+        <p class="dica">Completa o pack com itens sorteados do cadastro a cada ciclo.</p>
+      </header>
+      <div class="prop-bloco">
+        <label class="prop-check"><input type="checkbox" id="prop-rand-ativo"> Ativar produtos aleatórios</label>
+      </div>
+      <div id="prop-rand-opts" hidden>
+        <div class="prop-bloco">
+          <label>Tipo</label>
+          <select id="prop-modo-rand" class="prop-select">
+            <option value="ambos">EAN e balança</option>
+            <option value="ean">Apenas EAN</option>
+            <option value="balanca">Apenas balança / peso</option>
+          </select>
+        </div>
+        <div class="prop-bloco">
+          <label>Quantidade a sortear</label>
+          <input type="number" id="prop-qtd-rand" class="prop-input" min="1" max="50" value="5">
+        </div>
+      </div>
+
+      <div class="prop-acoes-row">
+        <button type="button" class="botao botao--claro" id="prop-salvar-prod">Salvar produtos</button>
+        <button type="button" class="botao" id="prop-gerar-agora">Gerar e enviar agora</button>
+      </div>
+      <p class="prop-hint" id="prop-gerar-status"></p>
+      <div id="prop-geradas" class="prop-midia-lista" style="margin-top:.7rem"></div>
+    </section>
+  </div>
+</div>
+
+<div class="prop-painel" id="painel-config">
+  <div class="prop-grid-2">
+    <section class="cartao">
+      <header class="config-secao-cab">
+        <h2>Terminais TC-506</h2>
+        <p class="dica">Identificados pelo <strong>MAC</strong> (estável). Nenhum marcado = todos os SC504 conectados.</p>
+      </header>
+      <div class="prop-acoes-row" style="margin-top:0;margin-bottom:.5rem">
+        <button type="button" class="botao botao--fantasma" id="prop-peers-refresh">Atualizar</button>
+        <button type="button" class="botao botao--fantasma" id="prop-peers-todos">Todos</button>
+        <button type="button" class="botao botao--fantasma" id="prop-peers-nenhum">Nenhum</button>
+      </div>
+      <div class="prop-peers-lista" id="prop-peers-lista"></div>
+    </section>
+
+    <section class="cartao">
+      <header class="config-secao-cab">
+        <h2>Mídias padrão</h2>
+        <p class="dica">Exibidas entre uma propaganda e outra.</p>
+      </header>
+      <div class="prop-upload-zone" id="prop-up-zone">
+        <strong>Arraste ou clique para enviar</strong>
+        <span class="meta-img">bmp, jpg, png, gif</span>
+        <input type="file" id="prop-up-file" accept="image/*,.bmp" hidden>
+      </div>
+      <div class="prop-bloco" style="margin-top:.7rem">
+        <label>Tempo de cada mídia padrão (s)</label>
+        <input type="number" id="prop-tempo-padrao" class="prop-input" min="1" max="300" value="5">
+      </div>
+      <div class="prop-bloco">
+        <label class="prop-check"><input type="checkbox" id="prop-midias-juntas" checked> Mostrar mídias juntas</label>
+        <p class="prop-hint">Com várias mídias: exibe todas em sequência entre cada propaganda (recomendado). Desligado alterna uma por vez.</p>
+      </div>
+      <div class="prop-midia-lista" id="prop-midia-lista" style="margin-top:.55rem"></div>
+    </section>
+  </div>
+
+  <section class="cartao" style="margin-top:1rem">
+    <header class="config-secao-cab">
+      <h2>Status</h2>
+      <p class="dica">Ciclo automático sempre ativo. Intervalo e inspeção de preço ficam em <strong>Produtos → Pacote e ciclo</strong>.</p>
+    </header>
+    <div class="prop-acoes-row">
+      <button type="button" class="botao botao--claro" id="prop-salvar-config">Salvar e enviar aos terminais</button>
+    </div>
+    <div class="prop-status-box" id="prop-status-box" style="margin-top:.85rem">Carregando…</div>
+  </section>
+</div>
+
+
+<div class="prop-modal" id="prop-modal-prod" hidden>
+  <div class="prop-modal-box">
+    <h3 id="prop-modal-prod-titulo">Produtos</h3>
+    <p class="meta-img" id="prop-modal-prod-sub"></p>
+    <ul class="prop-modal-lista" id="prop-prod-lista-modal"></ul>
+    <button type="button" class="botao botao--fantasma" id="prop-modal-prod-cancel">Fechar</button>
+  </div>
+</div>
+
+<div class="prop-modal" id="prop-modal-preview" hidden>
+  <div class="prop-modal-box" style="max-width:32rem">
+    <h3 id="prop-modal-preview-titulo">Prévia da propaganda</h3>
+    <p class="meta-img" id="prop-modal-preview-sub"></p>
+    <div style="background:#fff;border-radius:10px;overflow:hidden;line-height:0;border:1px solid rgb(255 255 255 / .12)">
+      <img id="prop-preview-img" alt="Prévia" style="width:100%;height:auto;display:block;image-rendering:auto">
+    </div>
+    <button type="button" class="botao botao--fantasma" id="prop-modal-preview-cancel" style="margin-top:.85rem">Fechar</button>
+  </div>
+</div>
+
+<style>
+.prop-modal{
+  position:fixed;inset:0;z-index:80;background:rgb(0 0 0 / .55);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+}
+.prop-modal[hidden]{display:none!important}
+.prop-modal-box{
+  width:min(32rem,100%);max-height:85vh;overflow:auto;
+  background:linear-gradient(165deg,#152036,#0b1220);
+  border:1px solid rgb(255 255 255 / .12);border-radius:14px;
+  padding:1.15rem 1.3rem;box-shadow:0 24px 60px rgb(0 0 0 / .55);
+}
+.prop-modal-box h3{margin:0 0 .5rem;font-size:1.1rem}
+.prop-modal-lista{list-style:none;margin:.6rem 0 1rem;padding:0;max-height:50vh;overflow:auto}
+.prop-modal-lista li{
+  display:flex;justify-content:space-between;align-items:center;gap:.6rem;
+  padding:.55rem .65rem;border-radius:8px;cursor:pointer;font-size:.88rem;
+  border-bottom:1px solid rgb(255 255 255 / .05);
+}
+.prop-modal-lista li:hover{background:rgb(29 111 224 / .15)}
+.prop-modal-lista .ean{font-family:ui-monospace,monospace;font-size:.8rem;color:#8a97b0;flex-shrink:0}
+</style>
+
+
+<div class="prop-progresso" id="prop-progresso" hidden>
+  <div class="prop-progresso-box">
+    <h3 id="prop-progresso-titulo">Gerando propagandas</h3>
+    <p class="meta-img" id="prop-progresso-msg">Preparando…</p>
+    <div class="prop-progresso-bar"><div class="prop-progresso-fill" id="prop-progresso-fill"></div></div>
+    <p class="meta-img" id="prop-progresso-pct" style="text-align:right;margin-top:.35rem">0%</p>
+  </div>
+</div>
+<style>
+.prop-progresso{
+  position:fixed;inset:0;z-index:90;background:rgb(0 0 0 / .55);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+}
+.prop-progresso[hidden]{display:none!important}
+.prop-progresso-box{
+  width:min(26rem,100%);
+  background:linear-gradient(165deg,#152036,#0b1220);
+  border:1px solid rgb(255 255 255 / .14);border-radius:14px;
+  padding:1.25rem 1.4rem;box-shadow:0 24px 60px rgb(0 0 0 / .55);
+}
+.prop-progresso-box h3{margin:0 0 .5rem;font-size:1.08rem}
+.prop-progresso-bar{
+  height:10px;border-radius:999px;background:rgb(255 255 255 / .08);
+  overflow:hidden;margin-top:.75rem;
+}
+.prop-progresso-fill{
+  height:100%;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,#1d6fe0,#4fc3f7);
+  transition:width .25s ease;
+}
+</style>
+
+<input type="file" id="prop-file-img" accept="image/*" hidden>

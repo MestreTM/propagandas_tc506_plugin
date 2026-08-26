@@ -1,0 +1,7 @@
+{
+  "id": "propagandas_tc506",
+  "nome": "Propagandas TC-506M",
+  "versao": "1.0.0",
+  "descricao": "Gera propagandas 480×272 BMP a partir de template (mesmo editor de camadas do Gerador de Cartaz), envia aos TC-506 conectados e alterna com mídias padrão. Produtos fixos ou aleatórios (EAN / balança / ambos) e agendamento por minutos, horas ou dias.",
+  "autor": "ArautoPY"
+}
